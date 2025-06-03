@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot EstudVest</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <figure>
+        <img src="img.png">
+        </figure>
+        <div id="controles">
+        <button id="iniciarBtn">Iniciar conversa</button>
+        <button id="encerrarBtn">Encerrar conversa</button>
+        </div>
+        </div>
+    <div class="chat-container">
+<header class="chat-header">
+    <h1>Chatbot EstudVest</h1>
+    <div id="connection-status" class="status-offline">Conectando...</div>
+</header>
+    <div id="chat-box" class="chat-box">
+    </div>
+    <footer class="chat-input-area">
+    <input type="text" id="message-input" placeholder="Digite sua mensagem aqui...">
+    <button id="send-button">Enviar</button>
+    </footer>
+    </div>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
