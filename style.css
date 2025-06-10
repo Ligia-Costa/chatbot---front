@@ -207,7 +207,7 @@ body {
   border-radius: 10px;
 }
 .chat-box::-webkit-scrollbar-thumb {
-  background: #ffffff;
+  background: var(--roxo-principal);
   border-radius: 10px;
 }
 
@@ -233,16 +233,17 @@ body {
 
 /* Estilos para as listas dentro de mensagens do bot */
 .bot-message ul {
-    list-style-type: disc; /* Adiciona o marcador de disco */
-    margin-left: 25px; /* Recuo à esquerda para a lista inteira */
-    padding-left: 0; /* Remove padding padrão do ul se estiver interferindo */
-    margin-top: 5px;
-    margin-bottom: 5px;
+    list-style-type: disc !important; /* Garante que o marcador seja um disco */
+    margin-left: 20px; /* Recuo à esquerda para a lista inteira */
+    padding-left: 15px; /* Aumenta o espaçamento entre o marcador e o texto do item */
+    margin-top: 8px; /* Espaço acima da lista */
+    margin-bottom: 8px; /* Espaço abaixo da lista */
 }
 
 .bot-message ul li {
-    margin-bottom: 5px; /* Espaço entre os itens da lista */
-    line-height: 1.4;
-    position: relative; /* Necessário para alinhar o conteúdo do li */
-    /* Você pode adicionar padding-left aqui se o marcador estiver muito próximo do texto */
+    margin-bottom: 4px; /* Espaço entre os itens da lista */
+    line-height: 1.5; /* Um pouco mais de espaço entre as linhas de um item de lista longo */
+    position: relative;
+    /* Remover ou comentar padding-left aqui se já estiver sendo ajustado no ul para evitar duplicação */
+    /* padding-left: 0; */
 }

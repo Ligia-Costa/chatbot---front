@@ -8,98 +8,135 @@ document.addEventListener('DOMContentLoaded', () => {
     const encerrarBtn = document.getElementById('encerrarBtn');
     let userSessionId = null;
 
-   // Função para adicionar mensagens no chat
-function addMessageToChat(sender, text, type = 'normal') {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message');
+    function convertMarkdownToHtml(markdownText) {
+        let htmlText = markdownText;
 
-    if (sender.toLowerCase() === 'user') {
-        messageElement.classList.add('user-message');
-        sender = 'Você';
-    } else if (sender.toLowerCase() === 'estudvest') {
-        messageElement.classList.add('bot-message');
-        sender = 'EstudVest';
-    } else {
-        messageElement.classList.add('status-message');
-    }
+        // 1. Converter negrito (*** ou **) para <strong>
+        // É importante fazer isso primeiro para que os asteriscos não interfiram com a detecção de lista.
+        htmlText = htmlText.replace(/\*\*\*(.*?)\*\*\*/g, '<strong>$1</strong>'); // Para ***negrito***
+        htmlText = htmlText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');   // Para **negrito**
 
-    if (type === 'error') {
-        messageElement.classList.add('error-text');
-        sender = 'Erro';
-    } else if (type === 'status') {
-        messageElement.classList.add('status-text');
-        sender = 'Status';
-    }
+        // 2. Converter itálico (*) ou (_) para <em>
+        htmlText = htmlText.replace(/_([^_]+)_/g, '<em>$1</em>');
+        htmlText = htmlText.replace(/\*([^*]+)\*/g, '<em>$1</em>');
 
-    const senderSpan = document.createElement('strong');
-    senderSpan.innerHTML = `${sender}: `;
-    messageElement.appendChild(senderSpan);
+        // 3. Processar cabeçalhos (#) para <h1>, <h2>, etc. (Opcional, mas útil para formatação)
+        // Se você não quer cabeçalhos, pode remover esta seção e apenas limpar o #
+        htmlText = htmlText.replace(/^#{1}\s*(.*)/gm, '<h1>$1</h1>');
+        htmlText = htmlText.replace(/^#{2}\s*(.*)/gm, '<h2>$1</h2>');
+        htmlText = htmlText.replace(/^#{3}\s*(.*)/gm, '<h3>$1</h3>');
+        htmlText = htmlText.replace(/^#{4}\s*(.*)/gm, '<h4>$1</h4>');
+        htmlText = htmlText.replace(/^#{5}\s*(.*)/gm, '<h5>$1</h5>');
+        htmlText = htmlText.replace(/^#{6}\s*(.*)/gm, '<h6>$1</h6>');
 
-    let processedText = text;
+        // 4. Processar blockquotes (>) para <blockquote> (Opcional)
+        // Se você não quer blockquotes, pode remover esta seção e apenas limpar o >
+        htmlText = htmlText.replace(/^>\s*(.*)/gm, '<blockquote>$1</blockquote>');
 
-    // --- 1. Processar Listas com '*' ---
-    // Dividir o texto em linhas para processamento de lista
-    const lines = processedText.split('\n');
-    let htmlContent = [];
-    let inList = false;
+        // 5. Processar código inline (`) para <code>
+        htmlText = htmlText.replace(/`(.*?)`/g, '<code>$1</code>');
 
-    lines.forEach(line => {
-        if (line.trim().startsWith('* ')) {
-            if (!inList) {
-                htmlContent.push('<ul>'); // Abre <ul> se não estiver em uma lista
-                inList = true;
+        // 6. Processar blocos de código (```) para <pre><code> (Opcional)
+        // Se você não quer blocos de código, pode remover esta seção
+        htmlText = htmlText.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+
+
+        // 7. Converter itens de lista. Esta é a parte mais crítica.
+        // O Gemini pode enviar listas com '\n' ou com espaços ' * '.
+        const lines = htmlText.split('\n');
+        let processedHtmlLines = [];
+        let inList = false;
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
+            const trimmedLine = line.trim();
+
+            // Prioriza a detecção de listas em novas linhas com '*' ou '-'
+            if (trimmedLine.match(/^(\*|-)\s/)) {
+                if (!inList) {
+                    processedHtmlLines.push('<ul>'); // Inicia a lista
+                    inList = true;
+                }
+                processedHtmlLines.push(`<li>${trimmedLine.replace(/^(\*|-)\s/, '')}</li>`);
+            } else {
+                if (inList) {
+                    processedHtmlLines.push('</ul>'); // Fecha a lista
+                    inList = false;
+                }
+                // Se a linha não é um item de lista por '\n', mas pode ter o padrão ' * ' dentro de uma linha
+                // O texto na imagem parece ter " * " como separador interno
+                if (trimmedLine.includes(' * ') && !trimmedLine.includes('<ul>')) {
+                     // Quebra a linha por " * " e cria itens de lista
+                    const subItems = trimmedLine.split(' * ').filter(item => item.trim() !== '');
+                    if (subItems.length > 1 || (subItems.length === 1 && trimmedLine.startsWith('* '))) {
+                        processedHtmlLines.push('<ul>');
+                        subItems.forEach(item => {
+                            processedHtmlLines.push(`<li>${item.trim()}</li>`);
+                        });
+                        processedHtmlLines.push('</ul>');
+                    } else {
+                        // Se não é uma lista formatada, apenas adicione a linha
+                        processedHtmlLines.push(line);
+                    }
+                } else {
+                    // Adiciona a linha original se não for lista e não for para quebrar em <br> aqui
+                    processedHtmlLines.push(line);
+                }
             }
-            // Remove o '* ' e envolve o item em <li>
-            htmlContent.push(`<li>${line.trim().substring(2)}</li>`);
-        } else {
-            if (inList) {
-                htmlContent.push('</ul>'); // Fecha <ul> se estava em uma lista e a linha atual não é item de lista
-                inList = false;
-            }
-            // Adiciona linhas que não são itens de lista
-            htmlContent.push(line);
         }
-    });
 
-    if (inList) { // Se a lista termina no final do texto, fecha o <ul>
-        htmlContent.push('</ul>');
+        if (inList) { // Se a lista terminou sem ser fechada
+            processedHtmlLines.push('</ul>');
+        }
+
+        htmlText = processedHtmlLines.join('\n'); // Junta as linhas processadas com quebras de linha temporárias
+
+        // 8. Tratar quebras de linha e parágrafos
+        // Substitui quebras de linha duplas por quebras de linha duplas HTML para parágrafos
+        htmlText = htmlText.replace(/\n\n/g, '<br><br>');
+        // Substitui quebras de linha simples por quebras de linha HTML simples
+        htmlText = htmlText.replace(/\n/g, '<br>');
+
+
+        return htmlText;
     }
 
-    // Junta as partes HTML de volta em uma string, preservando as quebras de linha para regex subsequentes
-    processedText = htmlContent.join('\n');
+    // Função para adicionar mensagens no chat
+    function addMessageToChat(sender, text, type = 'normal') {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
 
-    // --- 2. Processar Negrito com '***' ---
-    // Converte ***texto*** para <strong>texto</strong>
-    processedText = processedText.replace(/\*\*\*(.*?)\*\*\*/g, '<strong>$1</strong>');
+        if (sender.toLowerCase() === 'user') {
+            messageElement.classList.add('user-message');
+            sender = 'Você';
+        } else if (sender.toLowerCase() === 'bot') {
+            messageElement.classList.add('bot-message');
+            sender = 'EstudVest';
+        } else {
+            messageElement.classList.add('status-message');
+        }
 
-    // --- 3. Remover outros markdowns e formatar quebras de linha ---
+        if (type === 'error') {
+            messageElement.classList.add('error-text');
+            sender = 'Erro';
+        } else if (type === 'status') {
+            messageElement.classList.add('status-text');
+            sender = 'Status';
+        }
 
-    // Remove **negrito** (se não for ***)
-    processedText = processedText.replace(/\*\*(.*?)\*\*/g, '$1');
-    // Remove *itálico* (se não for parte de lista)
-    processedText = processedText.replace(/\*(.*?)\*/g, '$1');
-    // Remove _itálico_
-    processedText = processedText.replace(/_(.*?)_/g, '$1');
-    // Remove cabeçalhos #
-    processedText = processedText.replace(/^#+\s*(.*)/gm, '$1');
-    // Remove blockquotes >
-    processedText = processedText.replace(/^>\s*/gm, '');
-    // Remove código inline `código`
-    processedText = processedText.replace(/`(.*?)`/g, '$1');
-    // Remove blocos de código ```código```
-    processedText = processedText.replace(/```[\s\S]*?```/g, '');
+        const senderSpan = document.createElement('strong');
+        senderSpan.innerHTML = `${sender}: `;
+        messageElement.appendChild(senderSpan);
 
+        // Usa a nova função para processar o texto antes de adicioná-lo ao chat
+        const processedText = convertMarkdownToHtml(text);
 
-    // Converte quebras de linha em tags <br> para exibição HTML
-    processedText = processedText.replace(/\n\n/g, '<br>'); // Uma quebra para parágrafos
-
-
-    const textSpan = document.createElement('span');
-    textSpan.innerHTML = processedText; // Define o HTML processado no span
-    messageElement.appendChild(textSpan);
-    chatBox.appendChild(messageElement);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
+        const textSpan = document.createElement('span');
+        textSpan.innerHTML = processedText; // Define o HTML processado no span
+        messageElement.appendChild(textSpan);
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
     // Função para habilitar/desabilitar o chat
     function setChatEnabled(enabled) {
