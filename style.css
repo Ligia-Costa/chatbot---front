@@ -230,3 +230,32 @@ body {
 .btn-lixeira:hover {
     background: #a259ff;
 }
+
+/* Estilos adicionais para o chat */
+
+/* Garante que o negrito apareça em todas as mensagens */
+.message strong {
+    font-weight: bold;
+    color: inherit; /* Mantém a cor do texto pai (preto para bot-message, branco para user-message) */
+}
+
+/* Estilos para as listas dentro de mensagens do bot */
+.bot-message ul {
+    list-style-type: disc; /* Adiciona o marcador de disco */
+    margin-left: 25px; /* Recuo à esquerda para a lista inteira */
+    padding-left: 0; /* Remove padding padrão do ul se estiver interferindo */
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.bot-message ul li {
+    margin-bottom: 5px; /* Espaço entre os itens da lista */
+    line-height: 1.4;
+    position: relative; /* Necessário para alinhar o conteúdo do li */
+    /* Você pode adicionar padding-left aqui se o marcador estiver muito próximo do texto */
+}
+
+/* Opcional: Se quiser que o marcador de lista seja da cor do texto do bot */
+.bot-message ul li::marker {
+    color: var(--texto-principal); /* Ou a cor que você usa para o texto normal do bot */
+}
