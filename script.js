@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Conectado ao servidor Socket.IO! SID:', socket.id);
             connectionStatus.textContent = 'Conectado';
             connectionStatus.className = 'status-online';
-            addMessageToChat('Status', 'Conectado ao servidor de chat.', 'status');
+            addMessageToChat('Status', 'Hora de estudar!', 'status');
             setChatEnabled(true);
         });
 
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Desconectado do servidor Socket.IO.');
             connectionStatus.textContent = 'Desconectado';
             connectionStatus.className = 'status-offline';
-            addMessageToChat('Status', 'Você foi desconectado.', 'status');
+            addMessageToChat('Status', 'Seu estudo terminou.', 'status');
             setChatEnabled(false);
         });
 
