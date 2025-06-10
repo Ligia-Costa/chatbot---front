@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function iniciarConversa() {
     if (socket && socket.connected) return;
 
-    socket = io('https://chat-com-ia-backend.vercel.app/');
+    socket = io('http://127.0.0.1:5000');
 
     socket.on('connect', () => {
         console.log('Conectado ao servidor Socket.IO! SID:', socket.id);
