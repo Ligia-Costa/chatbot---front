@@ -120,3 +120,7 @@ messageInput.addEventListener('keypress', (event) => {
     }
 });
 });
+
+document.getElementById('clear-chat-button').addEventListener('click', function() {
+    document.getElementById('chat-box').innerHTML = '';
+});
