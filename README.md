@@ -57,5 +57,3 @@ Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICEN
 ## 📝 Observações
 
 Este chatbot é um projeto educacional e pode ser expandido com novos recursos como integração com banco de dados, personalização de respostas por perfil de usuário e muito mais.
-
----
